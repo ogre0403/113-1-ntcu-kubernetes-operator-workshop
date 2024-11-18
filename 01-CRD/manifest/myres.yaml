@@ -1,0 +1,9 @@
+apiVersion: operator.k8s-summit.org/v1
+kind: MyWeb
+metadata:
+  name: myweb
+  namespace: default
+spec:
+  image: nginx
+  nodePortNumber: 30100
+  

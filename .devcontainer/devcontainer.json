@@ -1,0 +1,32 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the README at:
+// https://github.com/microsoft/vscode-dev-containers/tree/v0.205.2/containers/alpine
+{
+	"name": "ntcu-workshop-2024",
+	// "image": "k8s-summit:latest",
+	
+	"build": {
+		"dockerfile": "Dockerfile",
+		"context": "."
+	},
+
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"golang.Go",
+				"GitHub.copilot",
+				"isudox.vscode-jetbrains-keybindings",
+				"fcrespo82.markdown-table-formatter"
+			]
+		}
+	},
+	"initializeCommand": {
+		"cp kubeconfig": "[ ! -z \"$(docker ps -f name=`kind  get clusters`-control-plane -q)\" ] && docker exec `kind  get clusters`-control-plane cat /etc/kubernetes/admin.conf > config"
+	},
+	"postStartCommand": {
+		"mv kubeconfig": "mkdir -p /root/.kube && mv ${containerWorkspaceFolder}/config /root/.kube/config"
+	},
+	// docker args to run the container, connect to KinD network
+	"runArgs": [
+		"--network=kind"
+	]
+}
