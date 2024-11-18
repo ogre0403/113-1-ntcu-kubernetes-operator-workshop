@@ -58,6 +58,7 @@ func (r *WebReconciler) Reconcile(ctx context.Context, req reconcile.Request) (r
 
 	foundSvc := &corev1.Service{}
 	err = r.client.Get(ctx, types.NamespacedName{Name: sample.Name, Namespace: sample.Namespace}, foundSvc)
+
 	if err != nil && errors.IsNotFound(err) {
 		svc := r.newService(sample)
 		log.Info("Creating a new Service", "Service.Namespace", svc.Namespace, "Service.Name", svc.Name)
@@ -72,15 +73,47 @@ func (r *WebReconciler) Reconcile(ctx context.Context, req reconcile.Request) (r
 		return reconcile.Result{}, err
 	}
 
-	nodePort := sample.Spec.NodePortNumber
-	if foundSvc.Spec.Ports[0].NodePort != int32(nodePort) {
-		foundSvc.Spec.Ports[0].NodePort = int32(nodePort)
+	specPort := sample.Spec.NodePortNumber
+	currentPort := int(foundSvc.Spec.Ports[0].NodePort)
+
+	if specPort != 0 && int32(currentPort) != int32(specPort) {
+		foundSvc.Spec.Ports[0].NodePort = int32(specPort)
+
 		err = r.client.Update(ctx, foundSvc)
 		if err != nil {
 			log.Error(err, "Failed to update Service", "Service.Namespace", foundSvc.Namespace, "Service.Name", foundSvc.Name)
 			return reconcile.Result{}, err
 		}
+
+		if sample.Status.Port != specPort {
+			sample.Status.Port = specPort
+			err = r.client.Status().Update(ctx, sample)
+			if err != nil {
+				log.Error(err, "Failed to update MyWeb status")
+				return reconcile.Result{}, err
+			}
+		}
+
 		return reconcile.Result{Requeue: true}, nil
+	}
+
+	// Update the MyWeb status with to true
+	if !sample.Status.Completed {
+		sample.Status.Completed = true
+		err = r.client.Status().Update(ctx, sample)
+		if err != nil {
+			log.Error(err, "Failed to update MyWeb status")
+			return reconcile.Result{}, err
+		}
+	}
+
+	if sample.Status.Port == 0 || sample.Status.Port != specPort {
+		sample.Status.Port = currentPort
+		err = r.client.Status().Update(ctx, sample)
+		if err != nil {
+			log.Error(err, "Failed to update MyWeb status")
+			return reconcile.Result{}, err
+		}
 	}
 
 	log.Info("Exiting Reconcile")
@@ -137,10 +170,14 @@ func (r *WebReconciler) newService(s *webv1.MyWeb) *corev1.Service {
 						Type:   intstr.Int,
 						IntVal: 80,
 					},
-					NodePort: int32(s.Spec.NodePortNumber),
+					// NodePort: int32(s.Spec.NodePortNumber),
 				},
 			},
 		},
+	}
+
+	if s.Spec.NodePortNumber != 0 {
+		svc.Spec.Ports[0].NodePort = int32(s.Spec.NodePortNumber)
 	}
 
 	svc.Name = s.Name
