@@ -1,0 +1,6 @@
+go 1.22
+
+use (
+	./02-CRD-GO-CLIENTSET/web-crd
+	./03-OPERATOR/operator
+)

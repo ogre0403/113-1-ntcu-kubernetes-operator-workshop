@@ -2,11 +2,10 @@
 // https://github.com/microsoft/vscode-dev-containers/tree/v0.205.2/containers/alpine
 {
 	"name": "ntcu-workshop-2024",
-	// "image": "k8s-summit:latest",
 	
 	"build": {
 		"dockerfile": "Dockerfile",
-		"context": "."
+		"context": ".."
 	},
 
 	"customizations": {

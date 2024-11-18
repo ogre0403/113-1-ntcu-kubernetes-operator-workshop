@@ -90,5 +90,5 @@ RUN go install k8s.io/code-generator/cmd/client-gen@v0.29.2     && \
 # Install required dependencies from go.mod file
 # COPY 03-OPERATOR/ /tmp/03-OPERATOR
 # RUN cd /tmp/03-OPERATOR/operator && \
-#     go mod tidy && \
-#     go get ./...
+    # go mod tidy && \
+    # go get ./...
