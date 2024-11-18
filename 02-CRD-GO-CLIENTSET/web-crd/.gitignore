@@ -2,3 +2,4 @@ hack/
 pkg/
 go.*
 *.go
+web-crd

@@ -76,3 +76,4 @@ clean: remove-generated
 	rm -rf pkg/
 	rm -rf hack/
 	rm main.go
+	rm $(BASE_PATH)
