@@ -37,15 +37,18 @@ spec:
             properties:
               completed:
                 type: boolean
+              port:
+                type: integer
             required:
             - completed
+            - port
     additionalPrinterColumns:
       - name: image
         jsonPath: .spec.image
         type: string
-      - name: NodePortNumber
+      - name: Port
         type: integer
-        jsonPath: .spec.nodePortNumber
+        jsonPath: .status.port
       - name: age
         jsonPath: .metadata.creationTimestamp
         type: date
