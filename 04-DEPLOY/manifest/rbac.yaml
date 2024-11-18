@@ -46,6 +46,7 @@ rules:
       - operator.k8s-summit.org
     resources:
       - mywebs
+      - mywebs/status
     verbs:
       - create
       - delete

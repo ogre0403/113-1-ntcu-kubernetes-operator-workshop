@@ -62,6 +62,7 @@ type MyWebSpec struct {
 
 type MyWebStatus struct {
 	Completed bool \`json:"completed"\`
+	Port 	int  \`json:"port"\`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
