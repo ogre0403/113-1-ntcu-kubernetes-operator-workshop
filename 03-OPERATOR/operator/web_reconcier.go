@@ -40,24 +40,6 @@ func (r *WebReconciler) Reconcile(ctx context.Context, req reconcile.Request) (r
 		return reconcile.Result{}, err
 	}
 
-	foundCM := &corev1.ConfigMap{}
-	err = r.client.Get(ctx, types.NamespacedName{Name: sample.Name, Namespace: sample.Namespace}, foundCM)
-	if err != nil && errors.IsNotFound(err) {
-		// Define a new deployment
-		dep := r.newConfigMap(sample)
-		log.Info("Creating a new ConfigMap", "ConfigMap.Namespace", dep.Namespace, "ConfigMap.Name", dep.Name)
-		err = r.client.Create(ctx, dep)
-		if err != nil {
-			log.Error(err, "Failed to create new ConfigMap", "ConfigMap.Namespace", dep.Namespace, "ConfigMap.Name", dep.Name)
-			return reconcile.Result{}, err
-		}
-		// Deployment created successfully - return and requeue
-		return reconcile.Result{Requeue: true}, nil
-	} else if err != nil {
-		log.Error(err, "Failed to get ConfigMap")
-		return reconcile.Result{}, err
-	}
-
 	foundDeployment := &appsv1.Deployment{}
 	err = r.client.Get(ctx, types.NamespacedName{Name: sample.Name, Namespace: sample.Namespace}, foundDeployment)
 	if err != nil && errors.IsNotFound(err) {
@@ -90,19 +72,6 @@ func (r *WebReconciler) Reconcile(ctx context.Context, req reconcile.Request) (r
 		return reconcile.Result{}, err
 	}
 
-	// Update PageContentHtml and NodePortNumber
-
-	// html := sample.Spec.PageContentHtml
-	// if foundCM.Data["index.html"] != html {
-	// 	foundCM.Data["index.html"] = html
-	// 	err = r.client.Update(ctx, foundCM)
-	// 	if err != nil {
-	// 		log.Error(err, "Failed to update ConfigMap", "ConfigMap.Namespace", foundCM.Namespace, "ConfigMap.Name", foundCM.Name)
-	// 		return reconcile.Result{}, err
-	// 	}
-	// 	return reconcile.Result{Requeue: true}, nil
-	// }
-
 	nodePort := sample.Spec.NodePortNumber
 	if foundSvc.Spec.Ports[0].NodePort != int32(nodePort) {
 		foundSvc.Spec.Ports[0].NodePort = int32(nodePort)
@@ -117,18 +86,6 @@ func (r *WebReconciler) Reconcile(ctx context.Context, req reconcile.Request) (r
 	log.Info("Exiting Reconcile")
 
 	return reconcile.Result{}, nil
-}
-
-func (r *WebReconciler) newConfigMap(s *webv1.MyWeb) *corev1.ConfigMap {
-
-	cm := &corev1.ConfigMap{
-		// Data: map[string]string{"index.html": s.Spec.PageContentHtml},
-	}
-	cm.Name = s.Name
-	cm.Namespace = s.Namespace
-
-	ctrl.SetControllerReference(s, cm, r.scheme)
-	return cm
 }
 
 func (r *WebReconciler) newDeployment(s *webv1.MyWeb) *appsv1.Deployment {
@@ -153,25 +110,7 @@ func (r *WebReconciler) newDeployment(s *webv1.MyWeb) *appsv1.Deployment {
 						Image: s.Spec.Image,
 						Name:  s.Name,
 						Ports: []corev1.ContainerPort{{ContainerPort: 80}},
-						VolumeMounts: []corev1.VolumeMount{
-							{
-								Name:      "html",
-								MountPath: "/usr/share/nginx/html",
-							},
-						},
 					}},
-					Volumes: []corev1.Volume{
-						{
-							Name: "html",
-							VolumeSource: corev1.VolumeSource{
-								ConfigMap: &corev1.ConfigMapVolumeSource{
-									LocalObjectReference: corev1.LocalObjectReference{
-										Name: s.Name,
-									},
-								},
-							},
-						},
-					},
 				},
 			},
 		},

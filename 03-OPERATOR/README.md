@@ -13,8 +13,7 @@ go build
 ```bash
 cd /workspaces/113-1-ntcu-kubernetes-operator-workshop/03-OPERATOR/operator
 
-sed -i '/Complete(&MyReconciler{})/c\
-		Owns(&corev1.ConfigMap{}).\
+sed -i '/Complete(&MyReconciler{})/\
 		Owns(&corev1.Service{}).\
 		Owns(&appsv1.Deployment{}).\
 		Complete(&WebReconciler{\
